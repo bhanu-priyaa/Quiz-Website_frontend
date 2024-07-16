@@ -1,19 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './homepage.css';
 import { FaBook, FaBrain } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 const Homepage = () => {
-  const tests = [
-    { id: 1, title: 'General Knowledge', icon: <FaBrain />, grade: 'Grade 7th', question: 1 },
-    { id: 2, title: 'General Knowledge', icon: <FaBrain />, grade: 'Grade 8th', question: 20  },
-    { id: 3, title: 'General Knowledge', icon: <FaBrain />, grade: 'Grade 9th', question: 40  },
-    { id: 4, title: 'General Knowledge', icon: <FaBrain />, grade: 'Grade 10th', question: 60  },
-    { id: 5, title: 'Current Affairs', icon: <FaBook />, grade: 'Grade 7th', question: 80  },
-    { id: 6, title: 'Current Affairs', icon: <FaBook />, grade: 'Grade 8th', question: 100  },
-    { id: 7, title: 'Current Affairs', icon: <FaBook />, grade: 'Grade 9th', question: 120  },
-    { id: 8, title: 'Current Affairs', icon: <FaBook />, grade: 'Grade 10th', question: 140 },
-  ];
+  const { authState } = useAuth();
+  const [tests, setTests] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authState.accessToken) {
+      navigate('/');
+      return;
+    }
+
+    const fetchTests = async () => {
+      try {
+        const config = {
+          method: 'get',
+          url: 'http://localhost:3000/quiz/fetch', // Replace with your API endpoint
+          headers: {
+            'Origin': 'http://localhost:3000',
+            'Content-Type': 'application/json',
+            'x-access-token': authState.accessToken,
+          },
+        };
+
+        const response = await axios.request(config);
+        setTests(response.data.data);
+      } catch (error) {
+        console.error('Error fetching tests:', error);
+      }
+    };
+
+    fetchTests();
+  }, [authState.accessToken, navigate]);
 
   return (
     <div className="homepage">
@@ -22,12 +45,24 @@ const Homepage = () => {
       <div className="card-container">
         {tests.map(test => (
           <div className="card" key={test.id}>
-            <div className="card-icon">{test.icon}</div>
+            <div className="card-icon">
+              {test.title.includes('Current Affairs') ? <FaBook /> : <FaBrain />}
+            </div>
             <h2 className="card-title">{test.title}</h2>
             <p className="card-grade" style={{ color: '#b2a6a6' }}>{test.grade}</p>
-            <a href={`/quiz/${test.question}`} target="_blank">
-              <button className="card-button">Take Test</button>
-            </a>
+            {test.result ? (
+              test.score !== undefined ? (
+                <p className="card-score">Score: {test.score}</p>
+              ) : (
+                <a href={`/quiz/${test.question}`} target="_blank" rel="noopener noreferrer">
+                  <button className="card-button">Take Test</button>
+                </a>
+              )
+            ) : (
+              <a href={`/quiz/${test.question}`} target="_blank" rel="noopener noreferrer">
+                <button className="card-button">Take Test</button>
+              </a>
+            )}
           </div>
         ))}
       </div>

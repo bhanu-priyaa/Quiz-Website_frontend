@@ -7,13 +7,14 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     accessToken: localStorage.getItem('accessToken') || null,
+    user: null
   });
 
-  const login = (token) => {
-    setAuthState({
-      accessToken: token,
-    });
-    localStorage.setItem('accessToken', token);
+  const login = (userData) => {
+    console.log(userData)
+    setAuthState(userData);
+    localStorage.setItem('accessToken', userData.accessToken);
+    resetTimer(); 
   };
 
   const logout = () => {
@@ -23,8 +24,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken');
   };
 
+  const resetTimer = () => {
+    localStorage.setItem('timeLeft', 3600);
+  };
+
   return (
-    <AuthContext.Provider value={{ authState, login, logout }}>
+    <AuthContext.Provider value={{ authState, login, logout, resetTimer}}>
       {children}
     </AuthContext.Provider>
   );

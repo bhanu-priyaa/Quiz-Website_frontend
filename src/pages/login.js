@@ -5,11 +5,13 @@ import { useAuth } from './AuthContext';
 import '../pages/login.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [userName, setUserName] = useState('')
-  const [password, setPassword] = useState('')
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
   const { login } = useAuth(); // Access the login function from context
   const navigate = useNavigate();
 
@@ -21,7 +23,7 @@ const LoginPage = () => {
     console.log('asfsgs')
     let config = {
       method: 'post',
-      url: 'http://localhost:5000/auth/login',
+      url: 'http://localhost:3000/auth/login',
       headers: {
         'Origin': 'http://localhost:3000',
         'Content-Type': 'application/json'
@@ -35,15 +37,17 @@ const LoginPage = () => {
     axios.request(config)
     .then((response) => {
       const data = response.data;
-      console.log(data.error)
+      toast(data.message); // Display API message as toast
       if(!data.error) {
-        login(data.data.accessToken); // Save the token using the context
-        navigate('/home')
+        login({
+          accessToken: response.data.data.accessToken,
+        }); // Save the token using the context
+        navigate('/home');
       }
     }).catch((error) => {
-      console.log('error occured in login')
+      toast.error('An error occurred during login');
     })
-}
+  }
 
   return (
     <div className="login-page">
@@ -75,6 +79,7 @@ const LoginPage = () => {
           <button onClick={handleLogin}>Login</button>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './resultpage.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const ResultPage = ({ userId }) => {
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [score, setScore] = useState(0);
   const [summary, setSummary] = useState({
@@ -21,10 +22,15 @@ const ResultPage = ({ userId }) => {
   const routePage = Number(page) === 1 ? 1 : Number(page)+1;
 
   useEffect(() => {
+    if (!authState.accessToken) {
+      navigate('/');
+      return;
+    }
+
     const fetchResults = async () => {
       const config = {
         method: 'get',
-        url: `http://localhost:5000/evaluation/evaluate/${routePage}`,
+        url: `http://localhost:3000/evaluation/evaluate/${routePage}`,
         headers: {
           'Origin': 'http://localhost:3000',
           'Content-Type': 'application/json',
